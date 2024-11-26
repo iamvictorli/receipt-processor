@@ -1,20 +1,29 @@
 import { apiReference } from '@scalar/hono-api-reference'
 
 import { createApp } from '@/lib/create-app'
-import index from '@/routes/index.route'
+import notFound from '@/middleware/not-found'
+import onError from '@/middleware/on-error'
+import receiptsRoute from '@/routes/receipts'
 
 import packageJSON from '../package.json' with { type: 'json' }
 
 const app = createApp()
 
+// add middlewares
+app.notFound(notFound)
+app.onError(onError)
+
+// The OpenAPI documentation will be available at /doc
 app.doc('/doc', {
   openapi: '3.0.0',
   info: {
-    version: packageJSON.version,
     title: 'Receipt Processor',
+    description: 'A simple receipt processor',
+    version: packageJSON.version,
   },
 })
 
+// Adds Scalar API reference
 // https://github.com/scalar/scalar/tree/main/packages/hono-api-reference
 app.get('/reference', apiReference({
   theme: 'kepler',
@@ -28,12 +37,8 @@ app.get('/reference', apiReference({
   },
 }))
 
-const routes = [
-  index,
-] as const
+// add all api routes
+const _routes = app.route('/receipts', receiptsRoute)
 
-routes.forEach((route) => {
-  app.route('/', route)
-})
-
+export type AppType = typeof _routes
 export default app
