@@ -1,7 +1,9 @@
 import { createRoute, z } from '@hono/zod-openapi'
+import crypto from 'node:crypto'
 
 import { createApp } from '@/lib/create-app'
-import { BAD_REQUEST, OK } from '@/lib/http-status-codes'
+import * as HttpStatusCodes from '@/lib/http-status-codes'
+import * as HttpStatusPhrases from '@/lib/http-status-phrases'
 
 const tags = ['Receipts']
 
@@ -39,6 +41,33 @@ const ReceiptSchema = z.object({
   }),
 }).openapi('Receipt')
 
+const { error: ReceiptSchemaExampleError } = ReceiptSchema.safeParse(ReceiptSchema instanceof z.ZodArray ? [] : {})
+
+const ProcessOkSchema = z.object({
+  id: z.string().regex(/^\S+$/).openapi({
+    example: 'adb6b560-0eef-42bc-9d16-df48f30e89b2',
+  }),
+})
+
+const PointsParamsSchema = z.object({
+  id: z.string().regex(/^\S+$/).openapi({
+    param: {
+      name: 'id',
+      in: 'path',
+      description: 'The ID of the receipt',
+    },
+  }),
+})
+
+const { error: PointsParamsExampleError } = PointsParamsSchema.safeParse({ id: ' ' })
+
+const PointsOkSchema = z.object({
+  points: z.number().int().openapi({
+    description: 'Points awarded',
+    example: 100,
+  }),
+})
+
 const router = createApp().openapi(
   createRoute({
     tags,
@@ -55,19 +84,40 @@ const router = createApp().openapi(
       },
     },
     responses: {
-      [OK]: {
+      [HttpStatusCodes.OK]: {
         content: {
           'application/json': {
-            schema: z.object({
-              id: z.string().regex(/^\S+$/).openapi({
-                example: 'adb6b560-0eef-42bc-9d16-df48f30e89b2',
-              }),
-            }),
+            schema: ProcessOkSchema,
           },
         },
         description: 'Returns the ID assigned to the receipt',
       },
-      [BAD_REQUEST]: {
+      [HttpStatusCodes.UNPROCESSABLE_ENTITY]: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              error: z.object({
+                type: z.literal(HttpStatusPhrases.UNPROCESSABLE_ENTITY),
+                details: z.array(
+                  z.object({
+                    code: z.string(),
+                    path: z.array(
+                      z.union([z.string(), z.number()]),
+                    ),
+                    message: z.string(),
+                  }),
+                ),
+              }),
+            }).openapi({
+              example: {
+                error: {
+                  type: HttpStatusPhrases.UNPROCESSABLE_ENTITY,
+                  details: ReceiptSchemaExampleError!.errors,
+                },
+              },
+            }),
+          },
+        },
         description: 'The receipt is invalid',
       },
     },
@@ -75,9 +125,12 @@ const router = createApp().openapi(
     description: 'Submits a receipt for processing',
   }),
   (c) => {
+    const receipt = c.req.valid('json')
+
+    const id = crypto.randomUUID()
     return c.json({
-      id: 'Tasks API',
-    })
+      id,
+    } satisfies z.infer<typeof ProcessOkSchema>, HttpStatusCodes.OK)
   },
 ).openapi(
   createRoute({
@@ -85,32 +138,64 @@ const router = createApp().openapi(
     method: 'get',
     path: '/{id}/points',
     request: {
-      params: z.object({
-        id: z.string().regex(/^\S+$/).openapi({
-          param: {
-            name: 'id',
-            in: 'path',
-            description: 'The ID of the receipt',
-          },
-        }),
-      }),
+      params: PointsParamsSchema,
     },
     responses: {
-      [OK]: {
+      [HttpStatusCodes.OK]: {
         content: {
           'application/json': {
-            schema: z.object({
-              points: z.number().int().openapi({
-                description: 'Points awarded',
-                example: 100,
-              }),
-            }),
+            schema: PointsOkSchema,
           },
         },
         description: 'The number of points awarded',
       },
-      [BAD_REQUEST]: {
+      [HttpStatusCodes.NOT_FOUND]: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              error: z.object({
+                type: z.literal(HttpStatusPhrases.NOT_FOUND),
+                message: z.string(),
+              }),
+            }).openapi({
+              example: {
+                error: {
+                  type: HttpStatusPhrases.NOT_FOUND,
+                  message: 'No receipt found for id: 123abc',
+                },
+              },
+            }),
+          },
+        },
         description: 'No receipt found for that id',
+      },
+      [HttpStatusCodes.UNPROCESSABLE_ENTITY]: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              error: z.object({
+                type: z.literal(HttpStatusPhrases.UNPROCESSABLE_ENTITY),
+                details: z.array(
+                  z.object({
+                    code: z.string(),
+                    path: z.array(
+                      z.union([z.string(), z.number()]),
+                    ),
+                    message: z.string(),
+                  }),
+                ),
+              }),
+            }).openapi({
+              example: {
+                error: {
+                  type: HttpStatusPhrases.UNPROCESSABLE_ENTITY,
+                  details: PointsParamsExampleError!.errors,
+                },
+              },
+            }),
+          },
+        },
+        description: 'The ID of the receipt is invalid',
       },
     },
     summary: 'Returns the points awarded for the receipt',
@@ -119,7 +204,7 @@ const router = createApp().openapi(
   (c) => {
     return c.json({
       points: 123,
-    })
+    } satisfies z.infer<typeof PointsOkSchema>, HttpStatusCodes.OK)
   },
 )
 

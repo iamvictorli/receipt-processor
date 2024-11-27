@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "build": "tsc && tsc-alias",
+    "start": "node ./dist/src/index.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
@@ -21,6 +23,8 @@
     "@types/node": "^20.11.17",
     "eslint": "^9.15.0",
     "eslint-plugin-format": "^0.1.2",
-    "tsx": "^4.7.1"
+    "tsc-alias": "^1.8.10",
+    "tsx": "^4.7.1",
+    "typescript": "^5.7.2"
   }
 }
