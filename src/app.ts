@@ -3,7 +3,7 @@ import { apiReference } from '@scalar/hono-api-reference'
 import { createApp } from '@/lib/create-app'
 import notFound from '@/middleware/not-found'
 import onError from '@/middleware/on-error'
-import receiptsRoute from '@/routes/receipts'
+import receiptsRoute from '@/routes/receipts/receipts.index'
 
 import packageJSON from '../package.json' with { type: 'json' }
 
