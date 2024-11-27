@@ -2,6 +2,8 @@ import type { Hook } from '@hono/zod-openapi'
 
 import { OpenAPIHono } from '@hono/zod-openapi'
 
+import type { UnprocessableEntityResponse } from '@/lib/http-schemas'
+
 import * as HttpStatusCodes from '@/lib/http-status-codes'
 import * as HttpStatusPhrases from '@/lib/http-status-phrases'
 
@@ -14,7 +16,7 @@ export function createApp() {
             type: HttpStatusPhrases.UNPROCESSABLE_ENTITY,
             details: result.error.errors,
           },
-        },
+        } satisfies UnprocessableEntityResponse,
         HttpStatusCodes.UNPROCESSABLE_ENTITY,
       )
     }
