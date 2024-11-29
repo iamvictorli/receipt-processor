@@ -15,7 +15,6 @@ const onError: ErrorHandler = (err, c) => {
   return c.json(
     {
       message: err.message,
-
       stack: environment === 'production'
         ? undefined
         : err.stack,

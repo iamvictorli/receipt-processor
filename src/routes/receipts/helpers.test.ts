@@ -34,6 +34,19 @@ describe('getReceiptPoints', () => {
       ],
       total: '35.35',
     }
+
+    /**
+      Total Points: 109
+      Breakdown:
+          50 points - total is a round dollar amount
+          25 points - total is a multiple of 0.25
+          14 points - retailer name (M&M Corner Market) has 14 alphanumeric characters
+                      note: '&' is not alphanumeric
+          10 points - 2:33pm is between 2:00pm and 4:00pm
+          10 points - 4 items (2 pairs @ 5 points each)
+        + ---------
+        = 109 points
+     */
     expect(getReceiptPoints(receipt)).toBe(28)
 
     const receipt1: Receipt = {
@@ -60,6 +73,18 @@ describe('getReceiptPoints', () => {
       ],
       total: '9.00',
     }
+    /**
+      Total Points: 109
+      Breakdown:
+          50 points - total is a round dollar amount
+          25 points - total is a multiple of 0.25
+          14 points - retailer name (M&M Corner Market) has 14 alphanumeric characters
+                      note: '&' is not alphanumeric
+          10 points - 2:33pm is between 2:00pm and 4:00pm
+          10 points - 4 items (2 pairs @ 5 points each)
+        + ---------
+        = 109 points
+     */
     expect(getReceiptPoints(receipt1)).toBe(109)
   })
 })
