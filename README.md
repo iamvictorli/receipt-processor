@@ -14,9 +14,14 @@
 
 ## Tech Stack
 
-- [Zod OpenAPI Hono](https://hono.dev/examples/zod-openapi) - generates OpenAPI documentation and validates both request and response in hono
+- [Zod OpenAPI Hono](https://hono.dev/examples/zod-openapi) - uses [zod schema validation](https://zod.dev/) to generate OpenAPI documentation and validates both request and response values
 
 ## Local Setup
 
 1. `pnpm install` - Install dependencies
 2. `pnpm dev` - Runs application
+
+## Other commands
+
+- `pnpm build` - Transpiles Typescript files to javascript on `/dist` folder
+- `pnpm test` - Runs test
