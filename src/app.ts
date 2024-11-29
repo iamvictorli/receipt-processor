@@ -1,4 +1,5 @@
 import { apiReference } from '@scalar/hono-api-reference'
+import { logger } from 'hono/logger'
 
 import notFound from '@/middleware/not-found'
 import onError from '@/middleware/on-error'
@@ -10,6 +11,7 @@ import packageJSON from '../package.json' with { type: 'json' }
 const app = createApp()
 
 // add middlewares
+app.use(logger())
 app.notFound(notFound)
 app.onError(onError)
 
